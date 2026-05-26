@@ -1,0 +1,570 @@
+===============================================================================
+                    ALL PROJECT FILES - COPY-PASTE VERSION
+===============================================================================
+
+Instructions:
+1. Create folder: portfolio-data-collector
+2. Create subfolders:
+   - .github/workflows/
+   - public/
+   - src/
+   - supabase/functions/whatsapp-sender/
+3. Copy each file below and save with the exact filename shown
+
+===============================================================================
+*******************************************************************************
+*******************************************************************************
+===============================================================================
+                          FILE 1: package.json
+===============================================================================
+{
+  "name": "portfolio-data-collector-pwa",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "homepage": "https://yourusername.github.io/portfolio-data-collector",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "lucide-react": "^0.344.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^9.9.1",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.11",
+    "gh-pages": "^6.3.0",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.3.0",
+    "vite": "^5.4.2"
+  }
+}
+
+===============================================================================
+                          FILE 2: vite.config.ts
+===============================================================================
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: '/portfolio-data-collector/', // Change this to your GitHub repo name
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
+  optimizeDeps: {
+    exclude: ['lucide-react'],
+  },
+});
+
+===============================================================================
+                          FILE 3: index.html
+===============================================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/portfolio-data-collector/icon-192.svg" />
+    <link rel="apple-touch-icon" href="/portfolio-data-collector/icon-192.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="Professional portfolio data collection app" />
+    <link rel="manifest" href="/portfolio-data-collector/manifest.json" />
+    <title>Portfolio Data Collector</title>
+    <meta property="og:title" content="Portfolio Data Collector" />
+    <meta property="og:description" content="Professional portfolio data collection app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yourusername.github.io/portfolio-data-collector/" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/portfolio-data-collector/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((error) => {
+              console.log('SW registration failed: ', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
+
+===============================================================================
+                      FILE 4: .gitignore
+===============================================================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env
+.env.local
+.env.production
+
+# Supabase
+.supabase
+
+===============================================================================
+                  FILE 5: public/manifest.json
+===============================================================================
+{
+  "name": "Portfolio Data Collector",
+  "short_name": "Portfolio Builder",
+  "description": "Professional portfolio data collection app",
+  "start_url": "/portfolio-data-collector/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/portfolio-data-collector/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/portfolio-data-collector/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en"
+}
+
+===============================================================================
+                      FILE 6: public/sw.js
+===============================================================================
+const CACHE_NAME = 'portfolio-collector-v1';
+const urlsToCache = [
+  '/portfolio-data-collector/',
+  '/portfolio-data-collector/index.html',
+];
+
+// Install event
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Opened cache');
+      return cache.addAll(urlsToCache);
+    })
+  );
+  self.skipWaiting();
+});
+
+// Fetch event
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response;
+      }
+      return fetch(event.request).then((response) => {
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+        return response;
+      });
+    })
+  );
+});
+
+// Activate event
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+===============================================================================
+                  FILE 7: public/icon-192.svg
+===============================================================================
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="32" fill="#2563eb"/>
+  <path d="M96 40C64.5 40 40 64.5 40 96C40 127.5 64.5 152 96 152C127.5 152 152 127.5 152 96C152 64.5 127.5 40 96 40ZM96 140C71.1 140 52 120.9 52 96C52 71.1 71.1 52 96 52C120.9 52 140 71.1 140 96C140 120.9 120.9 140 96 140Z" fill="white"/>
+  <path d="M96 64L108 88H84L96 64Z" fill="white"/>
+  <rect x="90" y="88" width="12" height="40" fill="white"/>
+  <circle cx="96" cy="136" r="6" fill="white"/>
+</svg>
+
+===============================================================================
+                  FILE 8: public/icon-512.svg
+===============================================================================
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#2563eb"/>
+  <path d="M256 107C171.5 107 107 171.5 107 256C107 340.5 171.5 405 256 405C340.5 405 405 340.5 405 256C405 171.5 340.5 107 256 107ZM256 373C189.5 373 139 322.5 139 256C139 189.5 189.5 139 256 139C322.5 139 373 189.5 373 256C373 322.5 322.5 373 256 373Z" fill="white"/>
+  <path d="M256 171L288 235H224L256 171Z" fill="white"/>
+  <rect x="240" y="235" width="32" height="107" fill="white"/>
+  <circle cx="256" cy="363" r="16" fill="white"/>
+</svg>
+
+===============================================================================
+                      FILE 9: src/main.tsx
+===============================================================================
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+===============================================================================
+                      FILE 10: src/index.css
+===============================================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
+  }
+
+  * {
+    @apply box-border;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 font-medium;
+  }
+
+  .btn-success {
+    @apply bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-lg p-6 md:p-8;
+  }
+}
+
+@layer utilities {
+  .rtl {
+    direction: rtl;
+  }
+
+  .ltr {
+    direction: ltr;
+  }
+}
+
+===============================================================================
+                  FILE 11: .github/workflows/deploy.yml
+===============================================================================
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+===============================================================================
+        FILE 12: supabase/functions/whatsapp-sender/index.ts
+===============================================================================
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+interface WhatsAppRequest {
+  phoneNumber: string;
+  message: string;
+  tomlFile?: string;
+}
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
+
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
+  }
+
+  try {
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ error: 'Method not allowed' }),
+        {
+          status: 405,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { phoneNumber, message, tomlFile }: WhatsAppRequest = await req.json();
+
+    if (!phoneNumber || !message) {
+      return new Response(
+        JSON.stringify({ error: 'Phone number and message are required' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Generate WhatsApp URL
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    // Return the WhatsApp URL and the TOML file for the user to attach
+    return new Response(
+      JSON.stringify({
+        success: true,
+        whatsappUrl,
+        message: 'Open the WhatsApp URL and attach the config.toml file',
+        downloadInstructions: 'The TOML file will be automatically downloaded. You can then attach it to the WhatsApp message.',
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+
+  } catch (error) {
+    console.error('Error in WhatsApp sender:', error);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+});
+
+===============================================================================
+                      FILE 13: tailwind.config.js
+===============================================================================
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+
+===============================================================================
+                      FILE 14: postcss.config.js
+===============================================================================
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+===============================================================================
+                      FILE 15: tsconfig.json
+===============================================================================
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+
+===============================================================================
+                      FILE 16: tsconfig.app.json
+===============================================================================
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+
+===============================================================================
+                      FILE 17: tsconfig.node.json
+===============================================================================
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+
+===============================================================================
+                      FILE 18: .env
+===============================================================================
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+===============================================================================
+                    REMAINING LARGE FILES
+===============================================================================
+
+The following files are too large to include in this single document.
+Please let me know and I will show them separately:
+
+1. src/config.js (10KB) - Configuration file
+2. src/App.tsx (36KB) - Main application
+3. src/tomlGenerator.ts (10KB) - TOML generation
+4. src/imageProcessor.ts (5KB) - Image processing
+5. README.md (6KB) - Documentation
+
+Would you like me to display these files one by one?
+
+===============================================================================
